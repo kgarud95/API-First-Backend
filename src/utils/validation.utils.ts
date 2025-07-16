@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { UserRole } from '../types/user.types';
+import { UserRole } from '../types/auth.types';
 import { CourseLevel } from '../types/course.types';
 
 // Auth validation schemas

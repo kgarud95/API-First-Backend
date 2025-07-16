@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { CourseController } from '../controllers/course.controller';
 import { authenticate, authorize, requireInstructorOrAdmin, optionalAuth } from '../middleware/auth.middleware';
-import { validateBody, validateParams, validateQuery } from '../middleware/validation.middleware';
+import { validateBody, validateParams, validateQuery, validateFile } from '../middleware/validation.middleware';
 import { uploadThumbnail, handleUploadError } from '../middleware/upload.middleware';
 import {
   createCourseSchema,
@@ -29,7 +29,19 @@ router.post('/', requireInstructorOrAdmin, validateBody(createCourseSchema), Cou
 router.put('/:id', requireInstructorOrAdmin, validateParams(idParamSchema), validateBody(updateCourseSchema), CourseController.updateCourse);
 router.delete('/:id', requireInstructorOrAdmin, validateParams(idParamSchema), CourseController.deleteCourse);
 router.post('/:id/publish', requireInstructorOrAdmin, validateParams(idParamSchema), CourseController.publishCourse);
-router.post('/:id/thumbnail', requireInstructorOrAdmin, validateParams(idParamSchema), uploadThumbnail, handleUploadError, CourseController.uploadCourseThumbnail);
+router.post('/:id/thumbnail', 
+  requireInstructorOrAdmin, 
+  validateParams(idParamSchema), 
+  uploadThumbnail, 
+  validateFile({
+    required: true,
+    maxSize: 5 * 1024 * 1024, // 5MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    fieldName: 'thumbnail'
+  }),
+  handleUploadError, 
+  CourseController.uploadCourseThumbnail
+);
 
 // Instructor dashboard
 router.get('/instructor/courses', authorize(UserRole.INSTRUCTOR, UserRole.ADMIN), validateQuery(paginationSchema), CourseController.getInstructorCourses);

@@ -41,10 +41,11 @@ export const config = {
 };
 
 export const validateConfig = (): void => {
-  const requiredEnvVars = [
-    'JWT_SECRET',
+  const requiredEnvVars = ['JWT_SECRET'];
+  
+  const optionalEnvVars = [
     'OPENAI_API_KEY',
-    'STRIPE_SECRET_KEY',
+    'STRIPE_SECRET_KEY', 
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
   ];
@@ -54,9 +55,16 @@ export const validateConfig = (): void => {
   );
 
   if (missingVars.length > 0) {
-    console.warn(
-      `Warning: Missing environment variables: ${missingVars.join(', ')}`
-    );
+    console.error(`Error: Missing required environment variables: ${missingVars.join(', ')}`);
+    process.exit(1);
+  }
+  
+  const missingOptionalVars = optionalEnvVars.filter(
+    (varName) => !process.env[varName]
+  );
+  
+  if (missingOptionalVars.length > 0) {
+    console.warn(`Warning: Missing optional environment variables: ${missingOptionalVars.join(', ')}`);
     console.warn('Some features may not work properly.');
   }
 };

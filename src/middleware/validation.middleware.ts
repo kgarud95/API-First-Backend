@@ -49,7 +49,12 @@ export const validateFile = (options: {
   fieldName?: string;
 }) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const { required = false, maxSize = 10 * 1024 * 1024, allowedTypes = [], fieldName = 'file' } = options;
+    const { 
+      required = false, 
+      maxSize = 10 * 1024 * 1024, 
+      allowedTypes = [], 
+      fieldName = 'file' 
+    } = options;
     
     const file = req.file;
     
@@ -60,15 +65,26 @@ export const validateFile = (options: {
     }
     
     if (file) {
+      // Validate file type more strictly
+      if (allowedTypes.length > 0) {
+        const isValidType = allowedTypes.some(type => {
+          if (type.includes('/')) {
+            return file.mimetype === type;
+          } else {
+            return file.mimetype.startsWith(type + '/');
+          }
+        });
+        
+        if (!isValidType) {
+          return sendValidationError(res, [
+            { field: fieldName, message: `File type must be one of: ${allowedTypes.join(', ')}` }
+          ]);
+        }
+      }
+      
       if (file.size > maxSize) {
         return sendValidationError(res, [
           { field: fieldName, message: `File size must be less than ${maxSize / (1024 * 1024)}MB` }
-        ]);
-      }
-      
-      if (allowedTypes.length > 0 && !allowedTypes.includes(file.mimetype)) {
-        return sendValidationError(res, [
-          { field: fieldName, message: `File type must be one of: ${allowedTypes.join(', ')}` }
         ]);
       }
     }

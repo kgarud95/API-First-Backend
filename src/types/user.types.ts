@@ -1,3 +1,5 @@
+import { UserRole } from './auth.types';
+
 export interface User {
   id: string;
   email: string;
